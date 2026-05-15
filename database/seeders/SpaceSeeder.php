@@ -22,7 +22,7 @@ class SpaceSeeder extends Seeder
                 'price_per_hour'=> 0,
                 'is_active'     => true,
                 'location'      => 'Piso 2, Bloque Académico A — Universidad',
-                'image'         => '/images/spaces/space-01.svg',
+                'image'         => '/images/spaces/space-3.jfif',
                 'availabilities'=> [
                     ['day_of_week' => 1, 'start_time' => '07:00', 'end_time' => '20:00'],
                     ['day_of_week' => 2, 'start_time' => '07:00', 'end_time' => '20:00'],
@@ -41,7 +41,7 @@ class SpaceSeeder extends Seeder
                 'price_per_hour'=> 85000,
                 'is_active'     => true,
                 'location'      => 'Piso 10, Torre Empresarial Centro — Empresa',
-                'image'         => '/images/spaces/space-02.svg',
+                'image'         => '/images/spaces/space-4.jfif',
                 'availabilities'=> [
                     ['day_of_week' => 1, 'start_time' => '08:00', 'end_time' => '18:00'],
                     ['day_of_week' => 2, 'start_time' => '08:00', 'end_time' => '18:00'],
@@ -60,7 +60,7 @@ class SpaceSeeder extends Seeder
                 'price_per_hour'=> 45000,
                 'is_active'     => true,
                 'location'      => 'Piso 3, Hub de Negocios Risaralda — Empresa',
-                'image'         => '/images/spaces/space-03.svg',
+                'image'         => '/images/spaces/space-5.jfif',
                 'availabilities'=> [
                     ['day_of_week' => 1, 'start_time' => '06:00', 'end_time' => '22:00'],
                     ['day_of_week' => 2, 'start_time' => '06:00', 'end_time' => '22:00'],
@@ -80,7 +80,7 @@ class SpaceSeeder extends Seeder
                 'price_per_hour'=> 0,
                 'is_active'     => true,
                 'location'      => 'Piso 1, Edificio Principal — Universidad',
-                'image'         => '/images/spaces/space-04.svg',
+                'image'         => '/images/spaces/space-6.jfif',
                 'availabilities'=> [
                     ['day_of_week' => 1, 'start_time' => '07:00', 'end_time' => '21:00'],
                     ['day_of_week' => 2, 'start_time' => '07:00', 'end_time' => '21:00'],

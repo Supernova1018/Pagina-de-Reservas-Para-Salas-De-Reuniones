@@ -32,7 +32,7 @@ class ReservationController extends Controller
         }
 
         if ($request->filled('start')) {
-            $start = Carbon::parse($request->start);
+            $start = Carbon::parse($request->start, config('app.timezone'));
             $slotMinutes = (int) env('RESERVATION_SLOT_MINUTES', 60);
             $end = $start->copy()->addMinutes($slotMinutes);
         }
@@ -62,8 +62,8 @@ class ReservationController extends Controller
         $space = Space::where('slug', $request->space_slug)->firstOrFail();
         $space->load('availabilities');
 
-        $start = Carbon::parse($request->start_time);
-        $end   = Carbon::parse($request->end_time);
+        $start = Carbon::parse($request->start_time, config('app.timezone'));
+        $end   = Carbon::parse($request->end_time, config('app.timezone'));
 
         // Validate slot duration matches configured minimum
         $slotMinutes = (int) env('RESERVATION_SLOT_MINUTES', 60);

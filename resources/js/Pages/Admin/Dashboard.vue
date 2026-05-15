@@ -8,6 +8,8 @@ const props = defineProps({
     recentReservations: Array,
     upcomingToday:      Array,
     topSpaces:          Array,
+    topUsers:           Array,
+    timeSlots:          Array,
 });
 
 function formatTime(iso) {
@@ -18,6 +20,10 @@ function formatDateTime(iso) {
     const d = new Date(iso);
     return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short' }) + ' ' +
            d.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+}
+
+function formatMoney(value) {
+    return '$' + Number(value || 0).toLocaleString('es-CO');
 }
 
 const statusClasses = {
@@ -34,12 +40,17 @@ const statusLabels = {
     completed: 'Finalizada',
 };
 
-const availabilityBlocks = computed(() => [
+const kpiCards = computed(() => [
     { title: 'Salas activas', value: props.stats.active_spaces, hint: 'Disponibles para reservar ahora', tone: 'from-violet-500/20 to-fuchsia-500/20 text-violet-100' },
-    { title: 'Confirmadas hoy', value: props.stats.today_count, hint: 'Agenda del día en curso', tone: 'from-cyan-500/20 to-sky-500/20 text-cyan-100' },
-    { title: 'Ingresos totales', value: '$' + Number(props.stats.revenue_total || 0).toLocaleString('es-CO'), hint: 'Suma de confirmadas y finalizadas', tone: 'from-emerald-500/20 to-teal-500/20 text-emerald-100' },
-    { title: 'Valoraciones', value: props.stats.ratings_count, hint: 'Reseñas posteriores al uso', tone: 'from-amber-500/20 to-orange-500/20 text-amber-100' },
+    { title: 'Usuarios activos', value: props.stats.active_users, hint: `${props.stats.total_users} cuentas registradas`, tone: 'from-cyan-500/20 to-sky-500/20 text-cyan-100' },
+    { title: 'Confirmadas', value: props.stats.confirmed_count, hint: 'Reservas históricas confirmadas', tone: 'from-emerald-500/20 to-teal-500/20 text-emerald-100' },
+    { title: 'Ingresos totales', value: formatMoney(props.stats.revenue_total), hint: 'Confirmadas y finalizadas', tone: 'from-amber-500/20 to-orange-500/20 text-amber-100' },
+    { title: 'Ticket promedio', value: formatMoney(props.stats.average_ticket), hint: 'Promedio por reserva', tone: 'from-fuchsia-500/20 to-pink-500/20 text-fuchsia-100' },
+    { title: 'Canceladas', value: props.stats.cancelled_count, hint: 'Solicitudes anuladas', tone: 'from-rose-500/20 to-red-500/20 text-rose-100' },
 ]);
+
+const topSpacePeak = computed(() => Math.max(1, ...props.topSpaces.map((space) => Number(space.confirmed_reservations_count || 0))));
+const topUserPeak = computed(() => Math.max(1, ...props.topUsers.map((user) => Number(user.confirmed_reservations_count || 0))));
 </script>
 
 <template>
@@ -49,8 +60,13 @@ const availabilityBlocks = computed(() => [
             <div class="flex flex-wrap items-end justify-between gap-4">
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-[0.3em] text-violet-300">Panel de gestión</p>
-                    <h2 class="mt-2 text-3xl font-bold text-slate-50">Disponibilidad y reservas</h2>
-                    <p class="mt-2 max-w-2xl text-sm text-slate-400">Resumen oscuro con acentos púrpura para revisar disponibilidad, reservas del día y accesos rápidos.</p>
+                    <h2 class="mt-2 text-3xl font-bold text-slate-50">Disponibilidad, demanda y reservas</h2>
+                    <p class="mt-2 max-w-2xl text-sm text-slate-400">Resumen oscuro con métricas reales, pronóstico por franjas y rankings ampliados para salas y usuarios.</p>
+                    <div class="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
+                        <span class="rounded-full border border-violet-400/20 bg-violet-500/10 px-3 py-1 text-violet-100">Pico: {{ stats.peak_slot_label }}</span>
+                        <span class="rounded-full border border-cyan-400/20 bg-cyan-500/10 px-3 py-1 text-cyan-100">Usuarios activos: {{ stats.active_users }}</span>
+                        <span class="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-emerald-100">Valoraciones: {{ stats.ratings_count }}</span>
+                    </div>
                 </div>
 
                 <Link href="/admin/calendar" class="rounded-2xl border border-violet-400/30 bg-violet-500/10 px-4 py-2.5 text-sm font-semibold text-violet-100 transition hover:bg-violet-500/20">
@@ -62,39 +78,11 @@ const availabilityBlocks = computed(() => [
         <div class="px-4 py-8 sm:px-6 lg:px-8">
             <div class="mx-auto max-w-7xl space-y-8">
 
-                <div class="grid gap-4 md:grid-cols-3">
-                    <div v-for="block in availabilityBlocks" :key="block.title" class="rounded-3xl border border-white/10 bg-slate-900/80 p-5 shadow-2xl shadow-violet-950/20 ring-1 ring-white/5">
-                        <div class="inline-flex rounded-full bg-gradient-to-r px-3 py-1 text-xs font-semibold" :class="block.tone">{{ block.title }}</div>
-                        <div class="mt-4 text-3xl font-bold text-white">{{ block.value }}</div>
-                        <div class="mt-2 text-sm text-slate-400">{{ block.hint }}</div>
-                    </div>
-                </div>
-
-                <!-- Stats grid -->
-                <div class="grid grid-cols-2 gap-4 lg:grid-cols-3">
-                    <div class="rounded-3xl border border-white/10 bg-slate-900/80 p-5 shadow-2xl shadow-violet-950/20 ring-1 ring-white/5">
-                        <div class="text-3xl font-bold text-emerald-300">{{ stats.confirmed_count }}</div>
-                        <div class="mt-1 text-sm text-slate-400">Confirmadas</div>
-                    </div>
-                    <div class="rounded-3xl border border-white/10 bg-slate-900/80 p-5 shadow-2xl shadow-violet-950/20 ring-1 ring-white/5">
-                        <div class="text-3xl font-bold text-cyan-300">{{ stats.today_count }}</div>
-                        <div class="mt-1 text-sm text-slate-400">Hoy</div>
-                    </div>
-                    <div class="rounded-3xl border border-white/10 bg-slate-900/80 p-5 shadow-2xl shadow-violet-950/20 ring-1 ring-white/5">
-                        <div class="text-3xl font-bold text-slate-100">{{ stats.this_month_count }}</div>
-                        <div class="mt-1 text-sm text-slate-400">Este mes</div>
-                    </div>
-                    <div class="rounded-3xl border border-white/10 bg-slate-900/80 p-5 shadow-2xl shadow-violet-950/20 ring-1 ring-white/5">
-                        <div class="text-3xl font-bold text-violet-300">{{ stats.active_spaces }}</div>
-                        <div class="mt-1 text-sm text-slate-400">Salas activas</div>
-                    </div>
-                    <div class="rounded-3xl border border-white/10 bg-slate-900/80 p-5 shadow-2xl shadow-violet-950/20 ring-1 ring-white/5">
-                        <div class="text-3xl font-bold text-slate-100">{{ stats.total_spaces }}</div>
-                        <div class="mt-1 text-sm text-slate-400">Salas totales</div>
-                    </div>
-                    <div class="rounded-3xl border border-white/10 bg-slate-900/80 p-5 shadow-2xl shadow-violet-950/20 ring-1 ring-white/5">
-                        <div class="text-3xl font-bold text-amber-300">{{ stats.cancelled_count }}</div>
-                        <div class="mt-1 text-sm text-slate-400">Canceladas</div>
+                <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    <div v-for="card in kpiCards" :key="card.title" class="rounded-3xl border border-white/10 bg-slate-900/80 p-5 shadow-2xl shadow-violet-950/20 ring-1 ring-white/5">
+                        <div class="inline-flex rounded-full bg-gradient-to-r px-3 py-1 text-xs font-semibold" :class="card.tone">{{ card.title }}</div>
+                        <div class="mt-4 text-3xl font-bold text-white">{{ card.value }}</div>
+                        <div class="mt-2 text-sm text-slate-400">{{ card.hint }}</div>
                     </div>
                 </div>
 
@@ -118,6 +106,76 @@ const availabilityBlocks = computed(() => [
                     >
                         Gestionar bloqueos
                     </Link>
+                </div>
+
+                <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+                    <section class="rounded-3xl border border-white/10 bg-slate-900/85 p-6 shadow-2xl shadow-violet-950/20 ring-1 ring-white/5">
+                        <div class="flex flex-wrap items-start justify-between gap-4">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-[0.3em] text-violet-300">Demanda histórica</p>
+                                <h3 class="mt-2 text-lg font-bold text-white">Franjas con mayor ocupación</h3>
+                                <p class="mt-2 max-w-xl text-sm text-slate-400">Basado en reservas confirmadas y finalizadas de los últimos 90 días.</p>
+                            </div>
+                            <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-right text-sm text-slate-300">
+                                <div class="text-xs uppercase tracking-wide text-slate-400">Pico</div>
+                                <div class="mt-1 font-semibold text-slate-100">{{ stats.peak_slot_label }}</div>
+                            </div>
+                        </div>
+
+                        <div v-if="timeSlots.length === 0" class="mt-6 rounded-2xl border border-dashed border-white/10 bg-white/5 p-6 text-center text-sm text-slate-400">
+                            Todavía no hay suficientes reservas para generar un pronóstico.
+                        </div>
+
+                        <div v-else class="mt-6 space-y-4">
+                            <div v-for="slot in timeSlots" :key="slot.label" class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                                <div class="flex items-center justify-between gap-3 text-sm">
+                                    <div class="font-semibold text-white">{{ slot.label }}</div>
+                                    <div class="text-slate-400">{{ slot.count }} reservas · {{ slot.level }}</div>
+                                </div>
+                                <div class="mt-2 h-2 overflow-hidden rounded-full bg-white/5">
+                                    <div class="h-full rounded-full bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-400 transition-all" :style="{ width: `${slot.fill}%` }"></div>
+                                </div>
+                                <div class="mt-2 text-xs text-slate-400">{{ slot.hint }}</div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="rounded-3xl border border-white/10 bg-slate-900/85 p-6 shadow-2xl shadow-violet-950/20 ring-1 ring-white/5">
+                        <div class="flex flex-wrap items-start justify-between gap-4">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-300">Usuarios</p>
+                                <h3 class="mt-2 text-lg font-bold text-white">Usuarios que más reservan</h3>
+                                <p class="mt-2 max-w-xl text-sm text-slate-400">Ranking ampliado con gasto confirmado y nivel de actividad.</p>
+                            </div>
+                            <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-right text-sm text-slate-300">
+                                <div class="text-xs uppercase tracking-wide text-slate-400">Promedio</div>
+                                <div class="mt-1 font-semibold text-slate-100">{{ stats.reservations_per_active_user }} reservas</div>
+                            </div>
+                        </div>
+
+                        <div v-if="topUsers.length === 0" class="mt-6 rounded-2xl border border-dashed border-white/10 bg-white/5 p-6 text-center text-sm text-slate-400">
+                            Todavía no hay usuarios con reservas confirmadas.
+                        </div>
+
+                        <div v-else class="mt-6 space-y-4">
+                            <article v-for="user in topUsers" :key="user.id" class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div>
+                                        <h4 class="font-semibold text-white">{{ user.name }}</h4>
+                                        <p class="text-xs text-slate-400">{{ user.email }}</p>
+                                    </div>
+                                    <span class="rounded-full bg-cyan-500/15 px-2 py-1 text-xs font-semibold text-cyan-200">{{ user.confirmed_reservations_count }} reservas</span>
+                                </div>
+                                <div class="mt-3 h-2 overflow-hidden rounded-full bg-white/5">
+                                    <div class="h-full rounded-full bg-gradient-to-r from-cyan-500 to-violet-500 transition-all" :style="{ width: `${(Number(user.confirmed_reservations_count || 0) / topUserPeak) * 100}%` }"></div>
+                                </div>
+                                <div class="mt-2 flex items-center justify-between text-xs text-slate-400">
+                                    <span>Gasto confirmado: {{ formatMoney(user.confirmed_spend) }}</span>
+                                    <span>Actividad alta</span>
+                                </div>
+                            </article>
+                        </div>
+                    </section>
                 </div>
 
                 <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
@@ -190,11 +248,15 @@ const availabilityBlocks = computed(() => [
                             <h3 class="mt-2 text-xl font-bold text-white">Salas más reservadas</h3>
                         </div>
                         <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-300">
-                            Top por reservas confirmadas
+                            Incluye reservas y gasto confirmado
                         </div>
                     </div>
 
-                    <div class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    <div v-if="topSpaces.length === 0" class="mt-6 rounded-2xl border border-dashed border-white/10 bg-white/5 p-6 text-center text-sm text-slate-400">
+                        Todavía no hay salas con reservas confirmadas.
+                    </div>
+
+                    <div v-else class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                         <article v-for="space in topSpaces" :key="space.id" class="overflow-hidden rounded-2xl border border-white/10 bg-slate-950/50">
                             <div class="h-28 bg-cover bg-center" :style="space.image ? { backgroundImage: `url(${space.image})` } : undefined"></div>
                             <div class="p-4">
@@ -205,25 +267,18 @@ const availabilityBlocks = computed(() => [
                                     </div>
                                     <span class="rounded-full bg-violet-500/15 px-2 py-1 text-xs font-semibold text-violet-200">{{ space.confirmed_reservations_count }}</span>
                                 </div>
+
+                                <div class="mt-3 h-2 overflow-hidden rounded-full bg-white/5">
+                                    <div class="h-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-400 transition-all" :style="{ width: `${(Number(space.confirmed_reservations_count || 0) / topSpacePeak) * 100}%` }"></div>
+                                </div>
+
                                 <div class="mt-3 flex items-center justify-between text-xs text-slate-400">
                                     <span>{{ space.capacity }} personas</span>
-                                    <span>${{ Number(space.price_per_hour || 0).toLocaleString('es-CO') }}/h</span>
+                                    <span>{{ formatMoney(space.confirmed_revenue) }}</span>
                                 </div>
+                                <div class="mt-1 text-xs text-slate-500">{{ formatMoney(space.price_per_hour) }}/h</div>
                             </div>
                         </article>
-                    </div>
-                </div>
-
-                <div class="rounded-3xl border border-violet-400/20 bg-gradient-to-r from-violet-500/10 via-fuchsia-500/10 to-cyan-500/10 p-6 shadow-2xl shadow-violet-950/20 ring-1 ring-white/5">
-                    <div class="flex flex-wrap items-start justify-between gap-4">
-                        <div>
-                            <p class="text-xs font-semibold uppercase tracking-[0.3em] text-violet-200">Sugerencia</p>
-                            <h3 class="mt-2 text-xl font-bold text-white">Predicción de demanda por franjas</h3>
-                            <p class="mt-2 max-w-3xl text-sm text-slate-300">Podrías añadir una vista que marque franjas con alta probabilidad de ocupación según histórico, para sugerir horarios alternos antes de que el usuario reserve.</p>
-                        </div>
-                        <div class="rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm text-slate-200">
-                            Sugerencia: ranking de horarios + alerta de sobrecarga
-                        </div>
                     </div>
                 </div>
             </div>

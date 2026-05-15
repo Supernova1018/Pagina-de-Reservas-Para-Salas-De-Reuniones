@@ -9,6 +9,7 @@ use App\Http\Controllers\Public\ReservationController as PublicReservationContro
 use App\Http\Controllers\Public\RatingController as PublicRatingController;
 use App\Http\Controllers\Public\SpaceController as PublicSpaceController;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 // =============================================================================
 // PUBLIC ROUTES (no auth required)
@@ -36,7 +37,7 @@ Route::post('/reservations', [PublicReservationController::class, 'store'])
 Route::get('/reservations/{reservation}/confirmation', [PublicReservationController::class, 'confirmation'])
     ->name('public.reservations.confirmation');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::get('/my-reservations', [PublicReservationController::class, 'mine'])
         ->name('public.reservations.mine');
 
@@ -52,7 +53,7 @@ Route::post('/reservations/{reservation}/rating', [PublicRatingController::class
 // ADMIN ROUTES (auth required via Jetstream)
 // =============================================================================
 
-Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
 
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -78,7 +79,17 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::resource('blocked-slots', BlockedSlotController::class)->only(['index', 'store', 'destroy']);
 });
 
-// Redirect /home to admin dashboard (Jetstream default)
-Route::get('/home', fn () => redirect()->route('admin.dashboard'))
+// Role-aware dashboard for authenticated users
+Route::get('/dashboard', function () {
+    $user = auth()->user();
+
+    if ($user?->is_admin) {
+        return redirect()->route('admin.dashboard');
+    }
+
+    return Inertia::render('Dashboard');
+})->middleware(['auth'])->name('dashboard');
+
+Route::get('/home', fn () => redirect()->route('dashboard'))
     ->middleware(['auth'])
-    ->name('dashboard');
+    ->name('legacy.home');

@@ -1,6 +1,6 @@
 <script setup>
-import { ref } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import ApplicationMark from '@/Components/ApplicationMark.vue';
 import Banner from '@/Components/Banner.vue';
 import Dropdown from '@/Components/Dropdown.vue';
@@ -13,6 +13,10 @@ defineProps({
 });
 
 const showingNavigationDropdown = ref(false);
+const page = usePage();
+const currentUser = computed(() => page.props.auth?.user ?? null);
+const isAdmin = computed(() => currentUser.value?.is_admin === true);
+const userInitial = computed(() => currentUser.value?.name?.charAt(0)?.toUpperCase() ?? 'U');
 
 const switchToTeam = (team) => {
     router.put(route('current-team.update'), {
@@ -65,20 +69,26 @@ const logout = () => {
                         </div>
 
                         <div class="hidden sm:flex sm:items-center sm:gap-3">
-                            
+                            <div v-if="currentUser" class="hidden lg:flex items-center gap-2 rounded-full border border-violet-400/20 bg-violet-500/10 px-3 py-2 text-sm text-violet-100">
+                                <span class="text-xs font-semibold uppercase tracking-[0.2em] text-violet-200/80">Sesión</span>
+                                <span class="max-w-[180px] truncate font-semibold">{{ currentUser.name }}</span>
+                            </div>
 
                             <div class="relative ms-3">
-                                <Dropdown align="right" width="48">
+                                <Dropdown align="right" width="56">
                                     <template #trigger>
                                         <button v-if="$page.props.jetstream.managesProfilePhotos" class="flex rounded-full border-2 border-violet-700/20 text-sm transition focus:border-violet-400 focus:outline-none">
                                             <img class="size-8 rounded-full object-cover" :src="$page.props.auth.user.profile_photo_url" :alt="$page.props.auth.user.name">
                                         </button>
 
                                         <span v-else class="inline-flex rounded-md">
-                                            <button type="button" class="inline-flex items-center rounded-xl border border-violet-700/20 bg-white/3 px-3 py-2 text-sm font-medium leading-4 text-slate-100 transition ease-in-out duration-150 hover:bg-white/6 hover:text-white focus:bg-white/6 focus:outline-none">
-                                                {{ $page.props.auth.user.name }}
+                                            <button type="button" class="inline-flex items-center gap-3 rounded-2xl border border-violet-400/30 bg-violet-500/15 px-4 py-2.5 text-sm font-semibold leading-4 text-white shadow-lg shadow-violet-950/20 transition duration-150 ease-in-out hover:bg-violet-500/25 hover:text-white focus:bg-violet-500/25 focus:outline-none">
+                                                <span class="inline-flex size-8 items-center justify-center rounded-full bg-violet-400/20 text-sm font-bold text-violet-100 ring-1 ring-violet-300/30">
+                                                    {{ userInitial }}
+                                                </span>
+                                                <span class="max-w-[170px] truncate">{{ $page.props.auth.user.name }}</span>
 
-                                                <svg class="ms-2 -me-0.5 size-4 text-violet-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                <svg class="ms-1 -me-0.5 size-4 text-violet-100" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                                                 </svg>
                                             </button>
@@ -86,21 +96,21 @@ const logout = () => {
                                     </template>
 
                                     <template #content>
-                                        <div class="block px-4 py-2 text-xs text-gray-400">Manage Account</div>
+                                        <div class="block px-4 py-2 text-xs uppercase tracking-[0.24em] text-slate-400">Cuenta</div>
 
                                         <DropdownLink :href="route('profile.show')">
-                                            Profile
+                                            Perfil
                                         </DropdownLink>
 
                                         <DropdownLink v-if="$page.props.jetstream.hasApiFeatures" :href="route('api-tokens.index')">
-                                            API Tokens
+                                            Tokens API
                                         </DropdownLink>
 
                                         <div class="border-t border-white/10" />
 
                                         <form @submit.prevent="logout">
                                             <DropdownLink as="button">
-                                                Log Out
+                                                Cerrar sesión
                                             </DropdownLink>
                                         </form>
                                     </template>

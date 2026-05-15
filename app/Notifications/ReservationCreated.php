@@ -35,6 +35,6 @@ class ReservationCreated extends Notification
 
     public function routeNotificationForMail(): string
     {
-        return $this->reservation->user_email;
+        return env('RESERVATION_NOTIFICATION_EMAIL', $this->reservation->user_email);
     }
 }

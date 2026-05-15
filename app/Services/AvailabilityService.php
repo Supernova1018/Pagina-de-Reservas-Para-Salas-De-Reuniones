@@ -76,7 +76,7 @@ class AvailabilityService
     public function getNextAvailableSlots(Space $space, int $count = 10): array
     {
         $slots  = [];
-        $from   = Carbon::now()->addHour()->startOfHour();
+        $from   = Carbon::now(config('app.timezone'))->addHour()->startOfHour();
         $to     = $from->copy()->addDays(30);
         $all    = $this->getAvailableSlots($space, $from, $to);
 

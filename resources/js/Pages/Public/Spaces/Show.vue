@@ -1,6 +1,6 @@
 <script setup>
-import { ref } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 
 const props = defineProps({
     space:     Object,
@@ -31,6 +31,14 @@ function reserveUrl(slot) {
 const availDays = props.space.availabilities
     ? [...props.space.availabilities].sort((a, b) => a.day_of_week - b.day_of_week)
     : [];
+
+const page = usePage();
+const currentUser = computed(() => page.props.auth?.user ?? null);
+const isAdmin = computed(() => currentUser.value?.is_admin === true);
+
+function logout() {
+    router.post(route('logout'));
+}
 </script>
 
 <template>
@@ -40,14 +48,43 @@ const availDays = props.space.availabilities
 
         <!-- Nav bar -->
         <nav class="border-b border-violet-700/20 bg-slate-900/40 px-4 py-3 backdrop-blur">
-            <div class="max-w-6xl mx-auto flex items-center gap-3">
-                <Link href="/" class="text-sm text-slate-300 hover:text-white">← Todas las salas</Link>
-                <span class="text-slate-500">/</span>
-                <span class="text-sm font-medium text-slate-100">{{ space.name }}</span>
+            <div class="mx-auto flex max-w-6xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex items-center gap-3">
+                    <Link href="/" class="text-sm text-slate-300 hover:text-white">← Todas las salas</Link>
+                    <span class="hidden text-slate-500 sm:inline">/</span>
+                    <span class="text-sm font-medium text-slate-100">{{ space.name }}</span>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <div v-if="currentUser" class="inline-flex items-center gap-2 rounded-full border border-violet-400/20 bg-violet-500/10 px-3 py-1.5 text-xs font-semibold text-violet-100">
+                        <span class="uppercase tracking-[0.2em] text-violet-200/80">Sesión</span>
+                        <span class="max-w-[160px] truncate">{{ currentUser.name }}</span>
+                    </div>
+
+                    <Link v-if="currentUser && isAdmin" :href="route('admin.dashboard')" class="rounded-full border border-white/10 px-3 py-1.5 text-xs font-semibold text-slate-200 transition hover:border-violet-400/30 hover:text-white">
+                        Panel
+                    </Link>
+                    <Link v-else-if="currentUser" :href="route('public.reservations.mine')" class="rounded-full border border-white/10 px-3 py-1.5 text-xs font-semibold text-slate-200 transition hover:border-violet-400/30 hover:text-white">
+                        Mis reservas
+                    </Link>
+                    <button v-if="currentUser" @click="logout" class="rounded-full border border-white/10 px-3 py-1.5 text-xs font-semibold text-slate-200 transition hover:border-rose-400/30 hover:text-rose-100">
+                        Cerrar sesión
+                    </button>
+
+                    <Link v-if="!currentUser" :href="route('login')" class="rounded-full border border-white/10 px-3 py-1.5 text-xs font-semibold text-slate-200 transition hover:border-violet-400/30 hover:text-white">
+                        Iniciar sesión
+                    </Link>
+                    <Link v-if="!currentUser" :href="route('register')" class="rounded-full border border-white/10 px-3 py-1.5 text-xs font-semibold text-slate-200 transition hover:border-violet-400/30 hover:text-white">
+                        Crear cuenta
+                    </Link>
+                    <Link :href="route('public.reservations.create')" class="rounded-full bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-violet-700">
+                        Reservar
+                    </Link>
+                </div>
             </div>
         </nav>
 
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-4 py-8 sm:px-6 lg:grid-cols-3 lg:px-8">
 
             <!-- Left: Space detail -->
             <div class="lg:col-span-2 space-y-6">
@@ -77,7 +114,7 @@ const availDays = props.space.availabilities
                             </div>
                         </div>
 
-                        <div class="mt-4 flex gap-6 border-t border-white/10 pt-4 text-sm text-slate-300">
+                        <div class="mt-4 flex flex-col gap-2 border-t border-white/10 pt-4 text-sm text-slate-300 sm:flex-row sm:gap-6">
                             <span>Capacidad: <strong>{{ space.capacity }} personas</strong></span>
                         </div>
                     </div>

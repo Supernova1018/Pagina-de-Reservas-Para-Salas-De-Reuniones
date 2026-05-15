@@ -1,6 +1,6 @@
 <script setup>
-import { ref, computed } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 
 const props = defineProps({
     spaces: Array,
@@ -33,6 +33,15 @@ const typeOptions = [
     { value: 'university', label: 'Universitaria' },
     { value: 'corporate',  label: 'Corporativa'   },
 ];
+
+const page = usePage();
+
+const currentUser = computed(() => page.props.auth?.user ?? null);
+const isAdmin = computed(() => currentUser.value?.is_admin === true);
+
+function logout() {
+    router.post(route('logout'));
+}
 </script>
 
 <template>
@@ -42,24 +51,60 @@ const typeOptions = [
 
         <!-- Hero -->
         <header class="border-b border-violet-700/20 bg-slate-900/40 shadow-sm backdrop-blur">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex items-center justify-between">
+            <div class="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 sm:px-6 lg:px-8 md:flex-row md:items-center md:justify-between">
                 <div>
                     <h1 class="text-2xl font-bold text-white">Reserva tu sala</h1>
                     <p class="mt-1 text-sm text-slate-400">Espacios universitarios y corporativos disponibles</p>
                 </div>
-                <Link
-                    href="/admin/dashboard"
-                    class="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-sm text-slate-200 transition hover:border-violet-400/30 hover:text-white"
-                >
-                    Panel admin
-                </Link>
+                <div class="flex flex-wrap items-center gap-2">
+                    <div v-if="currentUser" class="inline-flex items-center gap-2 rounded-full border border-violet-400/20 bg-violet-500/10 px-3 py-2 text-sm text-violet-100">
+                        <span class="text-xs font-semibold uppercase tracking-[0.2em] text-violet-200/80">Sesión</span>
+                        <span class="max-w-[180px] truncate font-semibold">{{ currentUser.name }}</span>
+                    </div>
+
+                    <Link
+                        v-if="currentUser && isAdmin"
+                        :href="route('admin.dashboard')"
+                        class="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-sm text-slate-200 transition hover:border-violet-400/30 hover:text-white"
+                    >
+                        Panel
+                    </Link>
+                    <Link
+                        v-else-if="currentUser"
+                        :href="route('public.reservations.mine')"
+                        class="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-sm text-slate-200 transition hover:border-violet-400/30 hover:text-white"
+                    >
+                        Mis reservas
+                    </Link>
+                    <Link
+                        v-if="!currentUser"
+                        :href="route('login')"
+                        class="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-violet-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-violet-700"
+                    >
+                        Iniciar sesión
+                    </Link>
+                    <Link
+                        v-if="!currentUser"
+                        :href="route('register')"
+                        class="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-sm text-slate-200 transition hover:border-violet-400/30 hover:text-white"
+                    >
+                        Crear cuenta
+                    </Link>
+                    <button
+                        v-if="currentUser"
+                        @click="logout"
+                        class="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-sm text-slate-200 transition hover:border-rose-400/30 hover:text-rose-100"
+                    >
+                        Cerrar sesión
+                    </button>
+                </div>
             </div>
         </header>
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
             <!-- Filters -->
-            <div class="mb-8 flex flex-wrap items-end gap-4 rounded-3xl border border-white/10 bg-slate-900/85 p-4 shadow-2xl shadow-violet-950/20 ring-1 ring-white/5">
+            <div class="mb-8 grid grid-cols-1 gap-4 rounded-3xl border border-white/10 bg-slate-900/85 p-4 shadow-2xl shadow-violet-950/20 ring-1 ring-white/5 sm:grid-cols-2 xl:grid-cols-4">
                 <div>
                     <label class="mb-1 block text-xs font-semibold text-slate-400">Tipo de sala</label>
                     <select
@@ -81,14 +126,14 @@ const typeOptions = [
                 </div>
                 <button
                     @click="applyFilters"
-                    class="rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-700"
+                    class="rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-700 sm:self-end"
                 >
                     Filtrar
                 </button>
                 <button
                     v-if="typeFilter || capacityFilter"
                     @click="clearFilters"
-                    class="rounded-lg border border-white/10 px-3 py-2 text-sm text-slate-300 transition hover:border-violet-400/30 hover:text-white"
+                    class="rounded-lg border border-white/10 px-3 py-2 text-sm text-slate-300 transition hover:border-violet-400/30 hover:text-white sm:self-end"
                 >
                     Limpiar
                 </button>

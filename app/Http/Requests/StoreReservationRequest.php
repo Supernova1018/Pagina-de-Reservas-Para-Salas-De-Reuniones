@@ -15,7 +15,7 @@ class StoreReservationRequest extends FormRequest
     public function rules(): array
     {
         $minimumLeadMinutes = (int) env('RESERVATION_MIN_LEAD_MINUTES', 240);
-        $minimumLeadTime = Carbon::now()->addMinutes($minimumLeadMinutes)->toDateTimeString();
+        $minimumLeadTime = Carbon::now(config('app.timezone'))->addMinutes($minimumLeadMinutes)->toDateTimeString();
 
         return [
             'space_slug'   => 'required|exists:spaces,slug',

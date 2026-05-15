@@ -70,10 +70,15 @@ function cancelReservation(slug) {
 
             <div class="mt-8 space-y-4">
                 <article v-for="reservation in reservations" :key="reservation.slug" class="overflow-hidden rounded-3xl border border-white/10 bg-slate-900/85 shadow-2xl shadow-violet-950/20 ring-1 ring-white/5">
-                    <div class="grid gap-0 lg:grid-cols-[260px_1fr]">
-                        <div class="h-52 bg-cover bg-center lg:h-full" :style="reservation.space.image ? { backgroundImage: `url(${reservation.space.image})` } : undefined"></div>
+                    <div class="grid gap-0 lg:grid-cols-[300px_1fr]">
+                        <div class="relative min-h-56 overflow-hidden border-b border-white/10 bg-slate-950/40 lg:min-h-full lg:border-b-0 lg:border-r">
+                            <img v-if="reservation.space.image" :src="reservation.space.image" :alt="reservation.space.name" class="h-full w-full object-contain p-5" />
+                            <div v-else class="flex h-full items-center justify-center px-6 py-10 text-center text-sm text-slate-400">
+                                Sin imagen disponible para esta sala.
+                            </div>
+                        </div>
 
-                        <div class="p-6">
+                        <div class="p-5 sm:p-6">
                             <div class="flex flex-wrap items-start justify-between gap-4">
                                 <div>
                                     <div class="inline-flex rounded-full px-3 py-1 text-xs font-semibold" :class="reservation.status === 'confirmed' ? 'bg-emerald-500/15 text-emerald-200' : reservation.status === 'cancelled' ? 'bg-slate-500/15 text-slate-200' : 'bg-violet-500/15 text-violet-200'">

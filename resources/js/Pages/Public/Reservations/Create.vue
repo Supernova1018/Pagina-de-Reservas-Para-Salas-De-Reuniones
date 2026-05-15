@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 
 const props = defineProps({
     space: Object,
@@ -66,6 +66,14 @@ const reservationTemplate = computed(() => {
     ].filter(Boolean).join('\n');
 });
 
+const page = usePage();
+const currentUser = computed(() => page.props.auth?.user ?? null);
+const isAdmin = computed(() => currentUser.value?.is_admin === true);
+
+function logout() {
+    router.post(route('logout'));
+}
+
 function toLocalInput(iso) {
     const date = new Date(iso);
     const pad = (value) => String(value).padStart(2, '0');
@@ -89,9 +97,26 @@ function submit() {
                         <p class="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">Reservas</p>
                         <h1 class="text-2xl font-bold text-white">Solicitar nueva reserva</h1>
                     </div>
-                    <Link href="/" class="inline-flex items-center rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-violet-400/30 hover:text-white">
-                        ← Ver salas
-                    </Link>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <div v-if="currentUser" class="inline-flex items-center gap-2 rounded-full border border-violet-400/20 bg-violet-500/10 px-3 py-2 text-sm text-violet-100">
+                            <span class="text-xs font-semibold uppercase tracking-[0.2em] text-violet-200/80">Sesión</span>
+                            <span class="max-w-[180px] truncate font-semibold">{{ currentUser.name }}</span>
+                        </div>
+
+                        <Link v-if="currentUser && isAdmin" :href="route('admin.dashboard')" class="inline-flex items-center rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-violet-400/30 hover:text-white">
+                            Panel
+                        </Link>
+                        <Link v-else-if="currentUser" :href="route('public.reservations.mine')" class="inline-flex items-center rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-violet-400/30 hover:text-white">
+                            Mis reservas
+                        </Link>
+                        <button v-if="currentUser" @click="logout" class="inline-flex items-center rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-rose-400/30 hover:text-rose-100">
+                            Cerrar sesión
+                        </button>
+
+                        <Link href="/" class="inline-flex items-center rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-violet-400/30 hover:text-white">
+                            ← Ver salas
+                        </Link>
+                    </div>
                 </div>
 
                 <div class="flex flex-wrap gap-2">
@@ -117,9 +142,9 @@ function submit() {
                         <div class="flex items-start justify-between gap-4">
                             <div>
                                 <h2 class="text-2xl font-bold text-white">Solicitar reserva</h2>
-                                <p class="mt-2 text-sm text-slate-400">Completa el formulario. La disponibilidad se valida en el servidor para evitar solapamientos.</p>
+                                <p class="mt-2 text-sm text-slate-400">Completa el formulario. Revisaremos la disponibilidad antes de confirmar tu reserva.</p>
                             </div>
-                                <div class="hidden rounded-full bg-slate-800/60 px-3 py-1 text-xs font-semibold text-slate-200 sm:block">Validación activa</div>
+                                <div class="hidden rounded-full bg-slate-800/60 px-3 py-1 text-xs font-semibold text-slate-200 sm:block">Control de horario</div>
                         </div>
 
                         <div v-if="Object.keys(form.errors).length" class="mt-6 rounded-2xl border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
@@ -241,7 +266,7 @@ function submit() {
                         </div>
 
                         <div class="mt-4 rounded-2xl border border-violet-400/20 bg-violet-500/10 px-4 py-3 text-sm text-violet-100">
-                            El backend valida solapamientos, capacidad y duración mínima antes de guardar.
+                            Revisamos solapamientos, capacidad y duración mínima antes de guardar.
                         </div>
                     </div>
 

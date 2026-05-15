@@ -71,7 +71,7 @@ const slotStyles = {
 
         <div class="px-4 py-8 sm:px-6 lg:px-8">
             <div class="mx-auto max-w-7xl space-y-6">
-                <div class="grid gap-4 lg:grid-cols-4">
+                <div class="grid gap-4 lg:grid-cols-3">
                     <div class="rounded-3xl border border-white/10 bg-slate-900/80 p-5 shadow-2xl shadow-violet-950/20 ring-1 ring-white/5">
                         <div class="text-xs uppercase tracking-[0.25em] text-slate-400">Sala activa</div>
                         <div class="mt-2 text-lg font-bold text-white">{{ selectedSpaceData?.name || 'Sin sala seleccionada' }}</div>
@@ -93,11 +93,6 @@ const slotStyles = {
                         <Link href="/admin/reservations" class="mt-3 inline-flex rounded-xl border border-violet-400/30 bg-violet-500/10 px-4 py-2 text-sm font-semibold text-violet-100 transition hover:bg-violet-500/20">
                             Revisar reservas
                         </Link>
-                    </div>
-
-                    <div class="rounded-3xl border border-white/10 bg-slate-900/80 p-5 shadow-2xl shadow-violet-950/20 ring-1 ring-white/5">
-                        <div class="text-xs uppercase tracking-[0.25em] text-slate-400">Disponibilidad</div>
-                        <div class="mt-2 text-sm text-slate-300">La vista usa el calendario semanal generado por `AvailabilityService`.</div>
                     </div>
                 </div>
 

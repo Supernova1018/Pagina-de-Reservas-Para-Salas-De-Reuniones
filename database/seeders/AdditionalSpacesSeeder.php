@@ -20,7 +20,7 @@ class AdditionalSpacesSeeder extends Seeder
                 'price_per_hour' => 20000,
                 'is_active' => true,
                 'location' => 'Piso 2, Ala Sur',
-                'image' => '/images/spaces/space-05.svg',
+                'image' => '/images/spaces/espacio-2.jfif',
                 'availabilities' => [
                     ['day_of_week' => 1, 'start_time' => '08:00', 'end_time' => '18:00'],
                     ['day_of_week' => 2, 'start_time' => '08:00', 'end_time' => '18:00'],
@@ -39,7 +39,7 @@ class AdditionalSpacesSeeder extends Seeder
                 'price_per_hour' => 20000,
                 'is_active' => true,
                 'location' => 'Piso 2, Ala Sur',
-                'image' => '/images/spaces/space-06.svg',
+                'image' => '/images/spaces/salas-reuniones-decoracion-oficinas-11.jpg',
                 'availabilities' => [
                     ['day_of_week' => 1, 'start_time' => '08:00', 'end_time' => '18:00'],
                     ['day_of_week' => 2, 'start_time' => '08:00', 'end_time' => '18:00'],
@@ -58,7 +58,7 @@ class AdditionalSpacesSeeder extends Seeder
                 'price_per_hour' => 150000,
                 'is_active' => true,
                 'location' => 'Edificio Central, Planta Baja',
-                'image' => '/images/spaces/space-07.svg',
+                'image' => '/images/spaces/space-7.webp',
                 'availabilities' => [
                     ['day_of_week' => 1, 'start_time' => '08:00', 'end_time' => '22:00'],
                     ['day_of_week' => 2, 'start_time' => '08:00', 'end_time' => '22:00'],
@@ -78,7 +78,7 @@ class AdditionalSpacesSeeder extends Seeder
                 'price_per_hour' => 40000,
                 'is_active' => true,
                 'location' => 'Piso 4, Zona Creativa',
-                'image' => '/images/spaces/space-08.svg',
+                'image' => '/images/spaces/space-8.jfif',
                 'availabilities' => [
                     ['day_of_week' => 1, 'start_time' => '09:00', 'end_time' => '18:00'],
                     ['day_of_week' => 2, 'start_time' => '09:00', 'end_time' => '18:00'],
@@ -97,7 +97,7 @@ class AdditionalSpacesSeeder extends Seeder
                 'price_per_hour' => 15000,
                 'is_active' => true,
                 'location' => 'Piso 1, Oficina de RRHH',
-                'image' => '/images/spaces/space-09.svg',
+                'image' => '/images/spaces/space-9.jfif',
                 'availabilities' => [
                     ['day_of_week' => 1, 'start_time' => '08:00', 'end_time' => '17:00'],
                     ['day_of_week' => 2, 'start_time' => '08:00', 'end_time' => '17:00'],
@@ -116,7 +116,7 @@ class AdditionalSpacesSeeder extends Seeder
                 'price_per_hour' => 60000,
                 'is_active' => true,
                 'location' => 'Piso 8, Ala Norte',
-                'image' => '/images/spaces/space-10.svg',
+                'image' => '/images/spaces/space-10.jfif',
                 'availabilities' => [
                     ['day_of_week' => 1, 'start_time' => '08:00', 'end_time' => '19:00'],
                     ['day_of_week' => 2, 'start_time' => '08:00', 'end_time' => '19:00'],
