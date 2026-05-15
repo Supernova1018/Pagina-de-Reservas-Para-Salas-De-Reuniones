@@ -114,6 +114,32 @@ class DashboardController extends Controller
                 'confirmed_spend' => (float) ($user->confirmed_spend ?? 0),
             ]);
 
+        $registeredUsers = User::query()
+            ->withCount([
+                'reservations',
+                'reservations as confirmed_reservations_count' => fn ($query) => $query->whereIn('status', $confirmedStatuses),
+            ])
+            ->withSum(['reservations as confirmed_spend' => fn ($query) => $query->whereIn('status', $confirmedStatuses)], 'total_price')
+            ->withMax('reservations', 'start_time')
+            ->latest('created_at')
+            ->limit(12)
+            ->get()
+            ->map(fn ($user) => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'is_admin' => (bool) $user->is_admin,
+                'is_blocked' => (bool) $user->is_blocked,
+                'is_suspended' => (bool) $user->is_suspended,
+                'email_verified_at' => $user->email_verified_at?->toIso8601String(),
+                'created_at' => $user->created_at?->toIso8601String(),
+                'reservations_count' => (int) $user->reservations_count,
+                'confirmed_reservations_count' => (int) ($user->confirmed_reservations_count ?? 0),
+                'confirmed_spend' => (float) ($user->confirmed_spend ?? 0),
+                'last_reservation_at' => $user->reservations_max_start_time ? Carbon::parse($user->reservations_max_start_time)->toIso8601String() : null,
+                'profile_photo_url' => $user->profile_photo_url,
+            ]);
+
         $recentReservations = Reservation::with('space')
             ->orderByDesc('created_at')
             ->limit(8)
@@ -152,6 +178,7 @@ class DashboardController extends Controller
             'upcomingToday' => $upcomingToday,
             'topSpaces' => $topSpaces,
             'topUsers' => $topUsers,
+            'registeredUsers' => $registeredUsers,
             'timeSlots' => $timeSlots,
         ]);
     }

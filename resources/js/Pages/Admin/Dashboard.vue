@@ -9,6 +9,7 @@ const props = defineProps({
     upcomingToday:      Array,
     topSpaces:          Array,
     topUsers:           Array,
+    registeredUsers:    Array,
     timeSlots:          Array,
 });
 
@@ -20,6 +21,11 @@ function formatDateTime(iso) {
     const d = new Date(iso);
     return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short' }) + ' ' +
            d.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+}
+
+function formatDate(iso) {
+    const d = new Date(iso);
+    return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 function formatMoney(value) {
@@ -240,6 +246,89 @@ const topUserPeak = computed(() => Math.max(1, ...props.topUsers.map((user) => N
                         </Link>
                     </div>
                 </div>
+
+                <section class="rounded-3xl border border-white/10 bg-slate-900/85 p-6 shadow-2xl shadow-violet-950/20 ring-1 ring-white/5">
+                    <div class="flex flex-wrap items-start justify-between gap-4">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-300">Usuarios registrados</p>
+                            <h3 class="mt-2 text-xl font-bold text-white">Información detallada de usuarios</h3>
+                            <p class="mt-2 max-w-2xl text-sm text-slate-400">Consulta correo, rol, verificación, actividad y última reserva de los usuarios más recientes.</p>
+                        </div>
+                        <div class="flex flex-col items-end gap-3">
+                            <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-right text-sm text-slate-300">
+                                <div class="text-xs uppercase tracking-wide text-slate-400">Total registrados</div>
+                                <div class="mt-1 font-semibold text-slate-100">{{ stats.total_users }}</div>
+                            </div>
+                            <Link href="/admin/users" class="rounded-2xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-500/20">
+                                Gestionar usuarios
+                            </Link>
+                        </div>
+                    </div>
+
+                    <div v-if="registeredUsers.length === 0" class="mt-6 rounded-2xl border border-dashed border-white/10 bg-white/5 p-6 text-center text-sm text-slate-400">
+                        Todavía no hay usuarios registrados para mostrar.
+                    </div>
+
+                    <div v-else class="mt-6 overflow-x-auto">
+                        <table class="min-w-full border-separate border-spacing-y-3 text-left">
+                            <thead>
+                                <tr class="text-xs uppercase tracking-[0.25em] text-slate-400">
+                                    <th class="px-4 pb-2 font-semibold">Usuario</th>
+                                    <th class="px-4 pb-2 font-semibold">Contacto</th>
+                                    <th class="px-4 pb-2 font-semibold">Rol</th>
+                                    <th class="px-4 pb-2 font-semibold">Actividad</th>
+                                    <th class="px-4 pb-2 font-semibold">Última reserva</th>
+                                    <th class="px-4 pb-2 font-semibold">Ingresos</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr
+                                    v-for="user in registeredUsers"
+                                    :key="user.id"
+                                    class="rounded-2xl bg-white/5 align-top transition hover:bg-white/10"
+                                >
+                                    <td class="px-4 py-4">
+                                        <div class="flex items-center gap-3">
+                                            <img
+                                                :src="user.profile_photo_url"
+                                                :alt="user.name"
+                                                class="h-11 w-11 rounded-2xl border border-white/10 object-cover"
+                                            >
+                                            <div>
+                                                <div class="font-semibold text-white">{{ user.name }}</div>
+                                                <div class="text-xs text-slate-400">Registrado el {{ formatDate(user.created_at) }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-4 text-sm text-slate-300">
+                                        <div>{{ user.email }}</div>
+                                        <div class="mt-1 text-xs" :class="user.email_verified_at ? 'text-emerald-300' : 'text-amber-300'">
+                                            {{ user.email_verified_at ? 'Correo verificado' : 'Pendiente de verificación' }}
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-4">
+                                        <span
+                                            class="rounded-full px-3 py-1 text-xs font-semibold"
+                                            :class="user.is_blocked ? 'bg-rose-500/15 text-rose-200' : user.is_suspended ? 'bg-amber-500/15 text-amber-200' : user.is_admin ? 'bg-violet-500/15 text-violet-200' : 'bg-white/10 text-slate-200'"
+                                        >
+                                            {{ user.is_blocked ? 'Bloqueado' : user.is_suspended ? 'Suspendido' : user.is_admin ? 'Administrador' : 'Usuario' }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-4 text-sm text-slate-300">
+                                        <div>{{ user.reservations_count }} reservas totales</div>
+                                        <div class="mt-1 text-xs text-slate-400">{{ user.confirmed_reservations_count }} confirmadas</div>
+                                    </td>
+                                    <td class="px-4 py-4 text-sm text-slate-300">
+                                        {{ user.last_reservation_at ? formatDateTime(user.last_reservation_at) : 'Sin reservas' }}
+                                    </td>
+                                    <td class="px-4 py-4 text-sm text-slate-300">
+                                        {{ formatMoney(user.confirmed_spend) }}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
 
                 <div class="rounded-3xl border border-white/10 bg-slate-900/85 p-6 shadow-2xl shadow-violet-950/20 ring-1 ring-white/5">
                     <div class="flex items-center justify-between gap-4">

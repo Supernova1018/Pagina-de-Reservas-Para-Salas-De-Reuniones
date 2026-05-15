@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\BlockedSlotController;
 use App\Http\Controllers\Admin\CalendarController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\SpaceController as AdminSpaceController;
 use App\Http\Controllers\Public\ReservationController as PublicReservationController;
 use App\Http\Controllers\Public\RatingController as PublicRatingController;
@@ -31,6 +32,7 @@ Route::get('/reservations/new', [PublicReservationController::class, 'create'])
 
 // Store reservation
 Route::post('/reservations', [PublicReservationController::class, 'store'])
+    ->middleware('not.suspended')
     ->name('public.reservations.store');
 
 // Confirmation page
@@ -42,11 +44,13 @@ Route::middleware(['auth'])->group(function () {
         ->name('public.reservations.mine');
 
     Route::post('/reservations/{reservation}/cancel', [PublicReservationController::class, 'cancel'])
+        ->middleware('not.suspended')
         ->name('public.reservations.cancel');
 });
 
 // Rating/feedback for completed reservation
 Route::post('/reservations/{reservation}/rating', [PublicRatingController::class, 'store'])
+    ->middleware('not.suspended')
     ->name('public.reservations.rating.store');
 
 // =============================================================================
@@ -63,6 +67,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Reservations listing + show
     Route::resource('reservations', AdminReservationController::class)->only(['index', 'show']);
+
+    // Users management
+    Route::resource('users', AdminUserController::class)->only(['index', 'edit', 'update', 'destroy']);
+    Route::post('/users/{user}/block', [AdminUserController::class, 'block'])->name('users.block');
+    Route::post('/users/{user}/unblock', [AdminUserController::class, 'unblock'])->name('users.unblock');
+    Route::post('/users/{user}/suspend', [AdminUserController::class, 'suspend'])->name('users.suspend');
+    Route::post('/users/{user}/unsuspend', [AdminUserController::class, 'unsuspend'])->name('users.unsuspend');
 
     // Reservation state transitions
     Route::post('/reservations/{reservation}/accept', [AdminReservationController::class, 'accept'])
